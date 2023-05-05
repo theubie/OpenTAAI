@@ -55,4 +55,5 @@ python openai-chatbot.py --chat_file d:/stream/chat.txt --api_key_file d:/stream
 
 * Allow using text-generation-webui instead of OpenAI
 * Allow using other local tts models
+* Integrate a chatbot directly to skip needing a 3rd party to genereate the chat log
 * Money printer that goes brrr?
