@@ -87,7 +87,7 @@ def send_to_openai(lines, context):
     input_text = context + "\n" + "\n".join(lines)
     if verbose:
         print(f"Input text: \n{messages}")
-    openai.api_key = api_key
+    openai.api_key = api_key.strip()
 
     try:
         response = openai.ChatCompletion.create(
