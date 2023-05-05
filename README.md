@@ -50,3 +50,9 @@ The script is run with the following parameters:
 ## Example
 
 python openai-chatbot.py --chat_file d:/stream/chat.txt --api_key_file d:/stream/openai_api_key.txt --streamer StreamerName --assistant AssistantName --context_file d:/stream/context.txt --custom_pronunciations_file d:/stream/custom_pronunciations.json --verbose --rate 100 --volume 10 --voice 5
+
+## Future Plans
+
+* Allow using text-generation-webui instead of OpenAI
+* Allow using other local tts models
+* Money printer that goes brrr?
