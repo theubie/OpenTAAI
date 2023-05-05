@@ -2,6 +2,9 @@
 
 This script is a chatbot that uses OpenAI's GPT-3 API to generate natural responses. It reads a text file containing chat messages from a Twitch channel, and generates a summary for the streamer.
 
+## Requirements
+
+Yes.  There are requirements.  I'll add them here when I have a list.  Obviously you'll need python installed.  If you're on Linux, good luck.  Audio doesn't work on WSL and I don't have an easy way to test yet.  Post in issues and we'll try to figure it all out.
 ## How to install
 
 * Clone the repo
