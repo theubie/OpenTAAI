@@ -5,8 +5,10 @@ This script is a chatbot that uses OpenAI's GPT-3 API to generate natural respon
 ## How to install
 
 * Clone the repo
-* run install.bat or install.sh
-* run run.bat or run.sh
+* Run install.bat or install.sh
+* Setup a third party app to capture chat to a text file.  (e.g. Streamdeck, TouchPortal, etc)
+* Edit run.bat or run.sh to point to your chat log file and to supply your OpenAI key
+* Launch run.bat or run.sh
 
 ## How to Use
 
