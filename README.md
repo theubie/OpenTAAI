@@ -1,2 +1,47 @@
-# OpenTAAI
-Read chat from Twitch channel and get a natural response from OpenAI then use TTS to say that response for your self and your chat's amusement.
+# OpenAI Chatbot
+
+This script is a chatbot that uses OpenAI's GPT-3 API to generate natural responses. It reads a text file containing chat messages from a Twitch channel, and generates a summary for the streamer.
+
+## How to install
+
+* Clone the repo
+* run install.bat or install.sh
+* run run.bat or run.sh
+
+## How to Use
+
+The script is run with the following parameters:
+
+* `--chat_file`: The path to the text file containing the chat messages from Twitch.
+
+* `--open_api_key`: The OpenAI API key (optional, if not provided the script will use the api_key_file argument).
+
+* `--api_key_file`: The path to the file containing the OpenAI API key (optional, if not provided the script will use the open_api_key argument).
+
+* `--streamer`: The streamer's name (optional).
+
+* `--assistant`: The assistant's name (optional).
+
+* `--poll_interval`: The interval to poll the chat file in seconds (default: 5).
+
+* `--context`: The context to be used for the OpenAI API request (default: "The bot is an assistant that will read the following stream chat and reply with a summary for the streamer.").
+
+* `--context_file`: The path to the text file containing the context to be used for the OpenAI API request (optional, if not provided the script will use the context argument).
+
+* `--custom_pronunciations_file`: The path to the json file containing custom pronunciations (optional).
+
+* `--verbose`: Print out the input text before sending it to OpenAI API (default: false).
+
+* `--rate`: The speech rate (optional).
+
+* `--volume`: The speech volume (optional).
+
+* `--voice`: The speech voice (optional).
+
+* `--model`: The GPT-3 model to use (default: gpt-3.5-turbo).
+
+* `--temperature`: The setting for the model's temperature (default: 0.9).
+
+## Example
+
+python openai-chatbot.py --chat_file d:/stream/chat.txt --api_key_file d:/stream/openai_api_key.txt --streamer StreamerName --assistant AssistantName --context_file d:/stream/context.txt --custom_pronunciations_file d:/stream/custom_pronunciations.json --verbose --rate 100 --volume 10 --voice 5
