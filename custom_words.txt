@@ -1,0 +1,9 @@
+{
+  "pronunciations": {
+    "PyTorch": "pie torch",
+    "OpenAI": "open eye",
+    "GPT-3": "gee pee tee three",
+    "ubie": "you-bie",
+    "theubie": "thee-you-bie"
+  }
+}
