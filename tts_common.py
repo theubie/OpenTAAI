@@ -2,6 +2,7 @@ from TTS.api import TTS
 import simpleaudio as sa
 import pyttsx3
 from helpers import replace_words_with_pronunciations
+import torch
 
 
 def say_something(text, global_state):
@@ -22,7 +23,8 @@ def say_something(text, global_state):
 
     # Determine which TTS engine to use based on user input
     if not hasattr(global_state.args, 'tts_engine') or global_state.args.tts_engine == 'coqui':
-        tts = TTS(model_name=global_state.args.tts_model, progress_bar=False, gpu=True)
+        tts = TTS(model_name=global_state.args.tts_model, progress_bar=False, gpu=(not global_state.args.force_tts_cpu and torch.cuda.is_available()))
+
         tts.tts_to_file(text=text_parsed, file_path='temp.wav')
 
         wave_obj = sa.WaveObject.from_wave_file('temp.wav')

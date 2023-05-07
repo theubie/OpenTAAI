@@ -61,6 +61,8 @@ The script is run with the following parameters:
 
 * `--tts_engine`: Which TTS engine to use. Options: coqui, pyttsx3. Defaults to pyttsx3.
 
+* `--tts_force_cpu`: Force coqui tts to use cpu, even if cuda is available.
+
 ## Example
 
 python openai-chatbot.py --chat_file d:/stream/chat.txt --api_key_file d:/stream/openai_api_key.txt --streamer StreamerName --assistant AssistantName --context_file d:/stream/context.txt --custom_pronunciations_file d:/stream/custom_pronunciations.json --verbose --rate 100 --volume 10 --voice 5

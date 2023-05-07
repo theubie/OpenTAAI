@@ -55,5 +55,8 @@ def parse_args():
 
     parser.add_argument('--tts_engine', type=str, default='pyttsx3', help="Which TTS engine to use.  Options: coqui, "
                                                                           "pyttsx3.  Defaults to pyttsx3")
+    parser.add_argument('--force_tts_cpu', type=bool, default=False, help="Force coqui TTS to use CPU even if Cuda is "
+                                                                          "available.  Ignore when using pyttsx3.  "
+                                                                          "Defaults to False.")
     args = parser.parse_args()
     return args
