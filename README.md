@@ -25,6 +25,8 @@ The script is run with the following parameters:
 
 * `--streamer`: The streamer's name (optional).
 
+* `--streamer_twitch`: The streamer's Twitch username (optional).
+
 * `--assistant`: The assistant's name (optional).
 
 * `--poll_interval`: The interval to poll the chat file in seconds (default: 5).
@@ -46,6 +48,18 @@ The script is run with the following parameters:
 * `--model`: The GPT-3 model to use (default: gpt-3.5-turbo).
 
 * `--temperature`: The setting for the model's temperature (default: 0.9).
+
+* `--poll_quiet_chat`: How many polling attempts before having the assistant talk without chat. 0 to disable (default: 20).
+
+* `--tts_model`: The TTS model to use (default: tts_models/en/ljspeech/tacotron2-DDC_ph).
+
+* `--coqui_studio_api_token`: The path to a file containing your Coqui Studio API key (optional).
+
+* `--command_users`: The path to a text file containing user names that are allowed to use the !opentaai command. One user per line (optional).
+
+* `--output_file`: The path to a text file to be used by your 3rd party application to send text to the Twitch chat. One message per line. Defaults to "./output.txt".
+
+* `--tts_engine`: Which TTS engine to use. Options: coqui, pyttsx3. Defaults to pyttsx3.
 
 ## Example
 
