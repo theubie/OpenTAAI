@@ -160,3 +160,8 @@ cython_debug/
 #.idea/
 /api_key.txt
 .idea/
+/coqui_api_key.txt
+/output.wav
+/temp.wav
+/command_users.txt
+/name_changes.json
