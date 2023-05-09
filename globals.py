@@ -1,5 +1,6 @@
 from arguments import parse_args
-
+import json
+import os
 
 class GlobalState:
     def __init__(self):
@@ -16,6 +17,14 @@ class GlobalState:
         self.verbose = self.args.verbose
         self.MAX_TOKENS = 2048
         self.RESPONSE_TOKENS = 150
+        self.name_changes = {}
+        self.ignored_users = []
+        self.attitude = self.args.attitude
+        self.llm_apis = []
+        self.llm_api = self.args.llm_api
+        self.tts_engines = []
+        self.tts_engine = self.args.tts_engine
+        self.tts_engine_object = None
 
         self.allowed_users = set()
 
@@ -36,3 +45,19 @@ class GlobalState:
             raise ValueError("At least one user must be allowed to execute commands.  Either specify the user's "
                              "twitch username with --streamer_twitch <username> or create a text file with allowed "
                              "users, one user name per line, and specify its path with --command_users <path>.")
+
+        try:
+            if not self.args.ignored_users_file or not self.args.ignored_users_file.strip():
+                ignored_users_file = "ignored_users.json"
+            else:
+                ignored_users_file = self.args.ignored_users_file
+
+            with open(ignored_users_file, 'r') as f:
+                self.ignored_users = json.load(f)
+        except FileNotFoundError:
+            pass
+
+        # API Key for LLM
+        if self.args.api_key_file and os.path.isfile(self.args.api_key_file):
+            with open(self.args.api_key_file, "r") as api_key_file_handle:
+                self.api_key = api_key_file_handle.read()

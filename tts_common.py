@@ -1,8 +1,26 @@
-from TTS.api import TTS
-import simpleaudio as sa
+import os
+import importlib.util
 import pyttsx3
 from helpers import replace_words_with_pronunciations
-import torch
+
+
+def load_tts_apis(global_state):
+    global_state.tts_engines = []
+    tts_dir = os.path.join(os.path.dirname(__file__), "TTS")
+    for file_name in os.listdir(tts_dir):
+        if file_name.endswith(".py") and file_name != "__init__.py":
+            module_name = file_name[:-3]
+            spec = importlib.util.spec_from_file_location(module_name, os.path.join(tts_dir, file_name))
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            if hasattr(module, "get_name") and callable(module.get_name):
+                global_state.tts_apis.append(module.get_name())
+
+
+def fallback_tts(text):
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
 
 
 def say_something(text, global_state):
@@ -22,25 +40,32 @@ def say_something(text, global_state):
         text_parsed = text_parsed[len(assistant_name) + 1:]
 
     # Determine which TTS engine to use based on user input
-    if not hasattr(global_state.args, 'tts_engine') or global_state.args.tts_engine == 'coqui':
-        tts = TTS(model_name=global_state.args.tts_model, progress_bar=False, gpu=(not global_state.args.force_tts_cpu and torch.cuda.is_available()))
+    tts_dir = os.path.join(os.path.dirname(__file__), "TTS")
+    module_name = global_state.tts_engine
+    module_path = os.path.join(tts_dir, module_name + ".py")
+    if not os.path.exists(module_path):
+        print("TTS API module not found. Defaulting to pyttsx3.")
+        fallback_tts(text_parsed)
+        return
 
-        tts.tts_to_file(text=text_parsed, file_path='temp.wav')
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
 
-        wave_obj = sa.WaveObject.from_wave_file('temp.wav')
-        play_obj = wave_obj.play()
-        # Wait for playback to finish before exiting
-        play_obj.wait_done()
+    try:
+        # Call the appropriate function within the module
+        function_name = "say"
+        if hasattr(module, function_name):
+            function = getattr(module, function_name)
+            function(text_parsed, global_state)
+        else:
+            print("TTS API module does not have a 'say' function.  Module name is {}".format(global_state.tts_engine))
+            fallback_tts(text_parsed)
 
-    elif global_state.args.tts_engine == 'pyttsx3':
-        engine = pyttsx3.init()
-        engine.say(text_parsed)
-        engine.runAndWait()
+    except AttributeError:
+        print("TTS API module does not have a 'say' function.  Module name is {}".format(global_state.tts_engine))
+        fallback_tts(text_parsed)
 
-    else:
-        print("Invalid TTS engine specified. Defaulting to pyttsx3.")
-        engine = pyttsx3.init()
-        engine.say(text_parsed)
-        engine.runAndWait()
-
-    return
+    except Exception as e:
+        print("Error occurred while calling TTS API: {}".format(str(e)))
+        fallback_tts(text_parsed)

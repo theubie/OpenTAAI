@@ -29,11 +29,11 @@ def parse_args():
                         help='Path to the json file containing custom pronunciations')
     parser.add_argument('--verbose', action='store_true', default=False,
                         help='Print out the input text before sending it to OpenAI API')
-    parser.add_argument('--rate', type=int, default=None,
-                        help='Speech rate')
-    parser.add_argument('--volume', type=int, default=None,
-                        help='Speech volume')
-    parser.add_argument('--voice', type=int, default=None,
+    parser.add_argument('--pyttsx3_rate', type=int, default=200,
+                        help='Speech rate in WPM')
+    parser.add_argument('--pyttsx3_volume', type=float, default=1.0,
+                        help='Speech volume from 0.0 to 1.0')
+    parser.add_argument('--pyttsx3_voice', type=int, default=0,
                         help='Speech voice')
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo',
                         help='The GPT-3 model to use')
@@ -58,5 +58,10 @@ def parse_args():
     parser.add_argument('--force_tts_cpu', type=bool, default=False, help="Force coqui TTS to use CPU even if Cuda is "
                                                                           "available.  Ignore when using pyttsx3.  "
                                                                           "Defaults to False.")
+    parser.add_argument('--ignored_users_file', type=str, default='ignored_users.json', help="File to store ignored "
+                                                                                             "user names in.")
+    parser.add_argument('--attitude', type=str, default='neutral', help="The current attitude for the bot.  Defaults to"
+                                                                        " neutral.")
+    parser.add_argument('--llm_api', type=str, default='openai_api', help="Which LLM api to use.")
     args = parser.parse_args()
     return args

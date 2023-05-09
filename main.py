@@ -1,51 +1,24 @@
 import os
 import time
-import openai
 import json
 
-import globals
 import tts_common
+import llm_common
 import response_commands
 from commands import parse_opentaai_command
 from globals import GlobalState
 
-# Create a global state instance
-from helpers import replace_words_with_pronunciations
+import logging
 
-# get our arguments
+logging.basicConfig(filename='openai.log', level=logging.DEBUG)
 
 # our global variables
 global_state = GlobalState()
 
 
-def send_to_openai(lines, context):
-    input_str = response_commands.replace_names("\n".join(lines))
-    global_state.messages.append({"role": "user", "content": input_str})
-    total_tokens = len(context.split()) + sum(len(m['content'].split()) for m in global_state.messages)
-    while total_tokens > global_state.MAX_TOKENS - global_state.RESPONSE_TOKENS:
-        global_state.messages.pop(1)
-        total_tokens = len(context.split()) + sum(len(m['content'].split()) for m in global_state.messages)
-    input_text = context + "\n" + "\n".join(lines)
-    if global_state.verbose:
-        print(f"Input text: \n{global_state.messages}")
-    openai.api_key = api_key.strip()
-
-    try:
-        response = openai.ChatCompletion.create(
-            model=global_state.args.model,
-            messages=global_state.messages,
-            temperature=global_state.args.temperature
-        )
-    except openai.OpenAIError as e:
-        print(f"Error: {e}")
-        return "Sorry, an error occurred while processing your request. Please try again later."
-    else:
-        new_response = response_commands.process_response(response['choices'][0]['message']['content'])
-        global_state.messages.append({"role": "assistant", "content": new_response})
-        return new_response
-
-
 if __name__ == "__main__":
+    # LLM setup
+    llm_common.load_llm_apis(global_state)
 
     # Setup Coqui API key if it's provided.
     if global_state.args.coqui_studio_api_token:
@@ -59,12 +32,7 @@ if __name__ == "__main__":
         print("'coqui-studio-api-token' argument not provided.  Skipping.")
 
     # do any required setup for our response_commands
-    response_commands.module_setup()
-
-    # Check for arguments and assign defaults
-    if global_state.args.api_key_file and os.path.isfile(global_state.args.api_key_file):
-        with open(global_state.args.api_key_file, "r") as api_key_file_handle:
-            api_key = api_key_file_handle.read()
+    response_commands.module_setup(global_state)
 
     if global_state.context_file and os.path.isfile(global_state.context_file):
         with open(global_state.context_file, "r") as context_file_handle:
@@ -123,6 +91,7 @@ if __name__ == "__main__":
                         line = line.strip()
                         if not line:
                             continue
+                        username = line.split(": ")[0]
                         message = line.split(": ")[1]
                         if message.startswith("!opentaai"):
                             if parse_opentaai_command(line, global_state):
@@ -131,12 +100,14 @@ if __name__ == "__main__":
                             continue
                         if message.startswith("(From Ai Assistant)"):
                             continue
+                        if username.lower() in global_state.ignored_users:  # Is the user on the ignore user list?
+                            continue
                         new_lines.append(line)
                     lines = new_lines
 
                     # send lines to OpenAI API
                     if not global_state.paused and len(lines) > 0:
-                        response = send_to_openai(lines, context)
+                        response = llm_common.send_to_llm(lines, context, global_state)
                         # do something with the response here, like sending it to a TTS engine
                         print(response)
 
@@ -147,7 +118,8 @@ if __name__ == "__main__":
                 else:
                     if not global_state.paused and global_state.args.poll_quiet_chat > 0:
                         poll_count = poll_count + 1
-                        print(f"Number of polls since last chat: {poll_count} (Max: {global_state.args.poll_quiet_chat})")
+                        print(
+                            f"Number of polls since last chat: {poll_count} (Max: {global_state.args.poll_quiet_chat})")
                         if poll_count >= global_state.args.poll_quiet_chat:
                             poll_count = 0
                             # send lines to OpenAI API
@@ -157,16 +129,8 @@ if __name__ == "__main__":
                                 context)
                             # do something with the response here, like sending it to a TTS engine
                             print(response)
-                            if global_state.custom_pronunciations:
-                                response_parsed = replace_words_with_pronunciations(response,
-                                                                                    global_state.custom_pronunciations[
-                                                                                        'pronunciations'])
-                            else:
-                                response_parsed = response
 
-                            if global_state.verbose:
-                                print(f"{response_parsed}")
-                            tts_common.say_something(response_parsed, global_state)
+                            tts_common.say_something(response, global_state)
 
         except FileNotFoundError:
             print(f"File not found: {global_state.file_path}")

@@ -5,6 +5,7 @@ from helpers import write_to_file
 # This should be the path to the directory containing the command files
 COMMANDS_DIR = "commands"
 
+
 def get_commands():
     commands = []
     for filename in os.listdir(COMMANDS_DIR):
@@ -20,6 +21,7 @@ def get_commands():
             else:
                 commands.append(f"{module_name}: No info available.")
     return sorted(commands)
+
 
 def parse_opentaai_command(line, global_state):
     user, message = line.split(": ", 1)
