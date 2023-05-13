@@ -1,6 +1,4 @@
 # ignore.py
-
-import tts_common
 from helpers import write_to_file
 import json
 

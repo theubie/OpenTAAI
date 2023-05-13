@@ -14,6 +14,8 @@ def parse_args():
                         help="Streamer's name")
     parser.add_argument('--streamer_twitch', type=str, required=False,
                         help="Streamer's Twitch username")
+    parser.add_argument('--streamer_pronouns', type=str, default='they/them',
+                        help="Streamer's pronouns.")
     parser.add_argument('--assistant', type=str, required=False,
                         help="Assistant's name")
     parser.add_argument('--poll_interval', type=int, default=5,
@@ -39,8 +41,9 @@ def parse_args():
                         help='The GPT-3 model to use')
     parser.add_argument('--temperature', type=int, default=0.9,
                         help='Setting for the model\'s temperature')
-    parser.add_argument('--poll_quiet_chat', type=int, default=20,
-                        help='How many polling attempts before having the assistant talk without chat.  0 to disable.')
+    parser.add_argument('--inactive_chat', type=int, default=30,
+                        help='How many seconds to wait for a chat message before the AI tries to engage chat.  0 to '
+                             'disable.')
     parser.add_argument('--tts_model', type=str, default='tts_models/en/ljspeech/tacotron2-DDC_ph',
                         help='The tts model to use')
     parser.add_argument('--coqui_studio_api_token', type=str, required=False,
@@ -63,5 +66,11 @@ def parse_args():
     parser.add_argument('--attitude', type=str, default='neutral', help="The current attitude for the bot.  Defaults to"
                                                                         " neutral.")
     parser.add_argument('--llm_api', type=str, default='openai_api', help="Which LLM api to use.")
+    parser.add_argument('--timezone', type=str, default='US/Central', help="Timezone you are in.  List of timezones "
+                                                                           "can be found at "
+                                                                           "https://pythonhosted.org/pytz/#available-time-zones")
+    parser.add_argument("--microphone", type=str, help="Select the microphone by index or name")
+    parser.add_argument("--llm_interval", type=int, default=20, help="Number of seconds between calls to the LLM.  Defaults to 20")
+    parser.add_argument("--twitch_token_file", type=str, default="twitch_token.txt", help="Path to a text file containing your twitch token.  Defaults to twitch_token.txt")
     args = parser.parse_args()
     return args

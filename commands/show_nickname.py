@@ -1,5 +1,4 @@
 # show_nickname.py
-from tts_common import say_something
 from helpers import write_to_file
 
 
@@ -21,9 +20,9 @@ def handle_command(line, global_state):
     nickname = global_state.name_changes.get(username.lower())
 
     if nickname:
-        say_something(f"{username}'s nickname is '{nickname}'.", global_state)
+        global_state.tts_queue.put(f"{username}'s nickname is '{nickname}'.", global_state)
     else:
-        say_something(f"{username} does not have a nickname set.", global_state)
+        global_state.tts_queue.put(f"{username} does not have a nickname set.", global_state)
 
     return True
 

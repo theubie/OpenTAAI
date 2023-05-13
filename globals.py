@@ -1,10 +1,15 @@
 from arguments import parse_args
 import json
 import os
+import datetime
+import pytz
+from queue import Queue
+
 
 class GlobalState:
     def __init__(self):
         self.paused = False
+        self.running = True
         self.args = parse_args()
         self.messages = []
         self.custom_pronunciations = None
@@ -25,10 +30,21 @@ class GlobalState:
         self.tts_engines = []
         self.tts_engine = self.args.tts_engine
         self.tts_engine_object = None
+        self.current_game = None
+        self.context = ""
+        self.twitch_token = ""
+
+        # Queues
+        self.main_queue = Queue()
+        self.tts_queue = Queue()
+        self.llm_queue = Queue()
+        self.twitch_queue = Queue()
 
         self.allowed_users = set()
 
         # Set allowed_users based on command line arguments
+        self.allowed_users.add("VOICE COMMAND")
+
         if parse_args().streamer_twitch:
             self.allowed_users.add(parse_args().streamer_twitch.strip())
 
@@ -61,3 +77,30 @@ class GlobalState:
         if self.args.api_key_file and os.path.isfile(self.args.api_key_file):
             with open(self.args.api_key_file, "r") as api_key_file_handle:
                 self.api_key = api_key_file_handle.read()
+
+        # API Key for coqui studio
+        if self.args.coqui_studio_api_token and os.path.isfile(self.args.coqui_studio_api_token):
+            with open(self.args.coqui_studio_api_token, "r") as api_key_file_handle:
+                coqui_api = api_key_file_handle.read().strip()
+                os.environ["COQUI_STUDIO_TOKEN"] = coqui_api
+
+        # Twitch Token
+        if self.args.twitch_token_file and os.path.isfile(self.args.twitch_token_file):
+            with open(self.args.twitch_token_file, "r") as twitch_token_handle:
+                self.twitch_token = twitch_token_handle.read()
+
+    def relevant_string(self):
+        # Set the timezone
+        timezone = pytz.timezone(self.args.timezone)
+
+        # Get the current time in the timezone
+        current_time = datetime.datetime.now(timezone)
+
+        # Format the time
+        formatted_time = current_time.strftime("%A %B %d %Y, %I:%M%p")
+        relevant_info = f"It is currently {formatted_time}"
+
+        if self.current_game is not None:
+            relevant_info = relevant_info + f" Currently we are playing/streaming: {self.current_game}"
+
+        return relevant_info

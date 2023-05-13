@@ -1,15 +1,14 @@
-# attitude.py
+# update_tts_model.py
 from helpers import write_to_file
 
 
 def handle_command(line, global_state):
-    attitude = line.strip()
-    if not attitude:
+    model = line.strip()
+    if not model:
         write_to_file("(From Ai Assistant) Usage: !opentaai attitude <attitude>", global_state)
         return True
 
-    global_state.attitude = attitude
-    global_state.tts_queue.put(f"Attitude set to '{attitude}'.", global_state)
+    global_state.tts_queue.put(["tts_model", model])
     return True
 
 

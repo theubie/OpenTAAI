@@ -26,9 +26,8 @@ def replace_names(input_str, global_state):
     for old_name, new_name in global_state.name_changes.items():
         # replace old_name with new_name in the input string
         input_str = re.sub(r'(?i)\b{}\b'.format(re.escape(old_name.lower())),
-                           f"{old_name}({new_name})", input_str)
+                           f"{new_name}", input_str)
     return input_str
-
 
 
 def load_name_changes(global_state):

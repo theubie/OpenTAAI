@@ -15,8 +15,11 @@ def send_message(lines, context, global_state):
 
     # Slip the attitude in
     messages_to_send = global_state.messages[:]
+    r_string = global_state.relevant_string()
+    messages_to_send.insert(1, {"role": "system", "content": r_string})
     messages_to_send.append({"role": "system", "content": f"Please generate your next response as if your "
                                                           f"attitude is {global_state.attitude}"})
+
     # OpenAI api key
     openai.api_key = global_state.api_key.strip()
 

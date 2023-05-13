@@ -1,6 +1,4 @@
 # remove_nickname.py
-
-import tts_common
 from response_commands import save_name_changes
 from helpers import write_to_file
 
@@ -20,7 +18,7 @@ def handle_command(line, global_state):
     if username in global_state.name_changes:
         del global_state.name_changes[username]
         print(f"Nickname for {username} removed.")
-        tts_common.say_something(f"Nickname for {username} removed.", global_state)
+        global_state.tts_queue.put(f"Nickname for {username} removed.", global_state)
         save_name_changes(global_state)
     else:
         print(f"No nickname found for {username}.")

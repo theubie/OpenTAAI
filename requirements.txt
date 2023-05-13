@@ -107,6 +107,15 @@ tzdata==2023.3
 tzlocal==4.3
 umap-learn==0.5.1
 unidic-lite==1.0.8
-urllib3
+urllib3~=1.26.13
 Werkzeug==2.3.3
 yarl==1.9.2
+
+pip~=23.0.1
+future~=0.18.3
+pypiwin32~=223
+pywin32~=306
+setuptools~=65.5.0
+python-multipart~=0.0.6
+gradio~=3.28.3
+PyAudio~=0.2.13

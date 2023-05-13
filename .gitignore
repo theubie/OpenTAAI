@@ -166,3 +166,4 @@ cython_debug/
 /command_users.txt
 /name_changes.json
 /output.txt
+/twitch_token.txt

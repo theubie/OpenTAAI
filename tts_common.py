@@ -2,6 +2,7 @@ import os
 import importlib.util
 import pyttsx3
 from helpers import replace_words_with_pronunciations
+import time
 
 
 def load_tts_apis(global_state):
@@ -17,13 +18,14 @@ def load_tts_apis(global_state):
                 global_state.tts_apis.append(module.get_name())
 
 
-def fallback_tts(text):
+def fallback_tts(text, event):
     engine = pyttsx3.init()
     engine.say(text)
     engine.runAndWait()
+    event.set()
 
 
-def say_something(text, global_state):
+def say_something(text, global_state, event):
     if global_state.custom_pronunciations:
         text_parsed = replace_words_with_pronunciations(text,
                                                         global_state.custom_pronunciations['pronunciations'])
@@ -45,7 +47,7 @@ def say_something(text, global_state):
     module_path = os.path.join(tts_dir, module_name + ".py")
     if not os.path.exists(module_path):
         print("TTS API module not found. Defaulting to pyttsx3.")
-        fallback_tts(text_parsed)
+        fallback_tts(text_parsed, event)
         return
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
@@ -57,15 +59,48 @@ def say_something(text, global_state):
         function_name = "say"
         if hasattr(module, function_name):
             function = getattr(module, function_name)
-            function(text_parsed, global_state)
+            function(text_parsed, global_state, event)
         else:
             print("TTS API module does not have a 'say' function.  Module name is {}".format(global_state.tts_engine))
-            fallback_tts(text_parsed)
+            fallback_tts(text_parsed, event)
 
     except AttributeError:
         print("TTS API module does not have a 'say' function.  Module name is {}".format(global_state.tts_engine))
-        fallback_tts(text_parsed)
+        fallback_tts(text_parsed, event)
 
     except Exception as e:
         print("Error occurred while calling TTS API: {}".format(str(e)))
-        fallback_tts(text_parsed)
+        fallback_tts(text_parsed, event)
+
+
+def update_model(model_name, global_state):
+
+    # Determine which TTS engine to use based on user input
+    tts_dir = os.path.join(os.path.dirname(__file__), "TTS")
+    module_name = global_state.tts_engine
+    module_path = os.path.join(tts_dir, module_name + ".py")
+    if not os.path.exists(module_path):
+        print("TTS API module not found. Unable to update model.")
+        return
+
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    try:
+        # Call the appropriate function within the module
+        function_name = "update_model"
+        if hasattr(module, function_name):
+            function = getattr(module, function_name)
+            function(model_name, global_state)
+        else:
+            print("TTS API module does not have a 'update_model' function.  Module name is {}".format(global_state.tts_engine))
+
+    except AttributeError:
+        print("TTS API module does not have a 'update_model' function.  Module name is {}".format(global_state.tts_engine))
+
+    except Exception as e:
+        print("Error occurred while calling TTS API: {}".format(str(e)))
+
+    return
+
