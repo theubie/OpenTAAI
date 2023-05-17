@@ -1,8 +1,7 @@
 # twitch_common.py
 import time
-
 import twitchio
-from twitchio.ext import commands
+from twitchio.ext import commands, pubsub
 
 
 class Bot(commands.Bot):
@@ -14,9 +13,13 @@ class Bot(commands.Bot):
         super().__init__(token=self._global_state.twitch_token, prefix='?',
                          initial_channels=[global_state.args.streamer_twitch])
 
-    async def event_error(self, error: Exception, data: str = None):
-        print(f"There was an error in the twitch connection: {Exception}")
-
+    async def sub_main(self):
+        topics = [
+            pubsub.channel_points(self._global_state.twitch_token)[self.user_id],
+            pubsub.bits(self._global_state.twitch_token)[self.user_id]
+        ]
+        await self.client.pubsub.subscribe_topics(topics)
+        await self.client.start()
 
     async def event_ready(self):
         # We are logged in and ready to chat and use commands...
@@ -24,7 +27,6 @@ class Bot(commands.Bot):
         print(f'User id is | {self.user_id}')
         print(f'Connected channels | {self.connected_channels}')
         self.loop.create_task(self.get_current_game())
-
 
     async def event_message(self, message):
         # Messages with echo set to True are messages sent by the bot...

@@ -33,6 +33,7 @@ class GlobalState:
         self.current_game = None
         self.context = ""
         self.twitch_token = ""
+        self.twitch_user_id = 29601546
 
         # Queues
         self.main_queue = Queue()

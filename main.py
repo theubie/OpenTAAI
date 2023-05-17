@@ -11,6 +11,7 @@ from commands import parse_opentaai_command
 from globals import GlobalState
 from stt_common import stt_thread, enumerate_microphones
 import asyncio
+import twitch_subpub
 
 # Global variables
 global_state = GlobalState()
@@ -210,7 +211,8 @@ async def twitch_thread(global_state):
     try:
         bot_task = asyncio.ensure_future(bot.start())
         stop_condition_task = asyncio.ensure_future(check_stop_condition())
-        tasks = [bot_task, stop_condition_task]
+        pubsub_task = asyncio.ensure_future(twitch_subpub.main(global_state))
+        tasks = [bot_task, stop_condition_task, pubsub_task]
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
         for task in pending:
             task.cancel()
