@@ -21,6 +21,10 @@ class Bot(commands.Bot):
         await self.client.pubsub.subscribe_topics(topics)
         await self.client.start()
 
+    async def event_error(self, error: Exception, data: str = None):
+        # check to see if we've lost connection.
+        self.connect()
+
     async def event_ready(self):
         # We are logged in and ready to chat and use commands...
         print(f'Logged in as | {self.nick}')

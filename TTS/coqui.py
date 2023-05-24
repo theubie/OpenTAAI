@@ -46,10 +46,10 @@ def say(text, global_state, event):
                                                          not global_state.args.force_tts_cpu and torch.cuda.is_available()))
             if global_state.args.verbose:
                 print(global_state.tts_engine_object.list_models())
-
-        output_file = f"temp_{i}.wav"
-        global_state.tts_engine_object.tts_to_file(text=substring, file_path=output_file, emotion="Neutral")
-        audio_files.append(output_file)
+        if substring.strip():
+            output_file = f"temp_{i}.wav"
+            global_state.tts_engine_object.tts_to_file(text=substring, file_path=output_file, emotion="Neutral")
+            audio_files.append(output_file)
 
     combined_output_file = "combined_output.wav"
 

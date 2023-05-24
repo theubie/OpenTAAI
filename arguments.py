@@ -31,11 +31,11 @@ def parse_args():
                         help='Path to the json file containing custom pronunciations')
     parser.add_argument('--verbose', action='store_true', default=False,
                         help='Print out the input text before sending it to OpenAI API')
-    parser.add_argument('--pyttsx3_rate', type=int, default=200,
+    parser.add_argument('--tts_rate', type=float, default=1.0,
                         help='Speech rate in WPM')
-    parser.add_argument('--pyttsx3_volume', type=float, default=1.0,
+    parser.add_argument('--tts_volume', type=float, default=1.0,
                         help='Speech volume from 0.0 to 1.0')
-    parser.add_argument('--pyttsx3_voice', type=int, default=0,
+    parser.add_argument('--tts_voice', type=int, default=0,
                         help='Speech voice')
     parser.add_argument('--model', type=str, default='gpt-3.5-turbo',
                         help='The GPT-3 model to use')

@@ -2,6 +2,7 @@ import os
 import time
 import json
 from queue import Queue
+from queue import Empty
 
 import tts_common
 import llm_common
@@ -9,7 +10,7 @@ import twitch_common
 import response_commands
 from commands import parse_opentaai_command
 from globals import GlobalState
-from stt_common import stt_thread, enumerate_microphones
+# from stt_common import stt_thread, enumerate_microphones
 import asyncio
 import twitch_subpub
 
@@ -39,18 +40,18 @@ async def main_loop(global_state):
         with open(global_state.context_file, "r") as context_file_handle:
             context = context_file_handle.read()
     if global_state.args.streamer:
-        context += " The streamer's name is " + global_state.args.streamer + ", and the assistant should refer to the streamer as that. "
+        context += f" The streamer's name is {global_state.args.streamer}, and the assistant should refer to the streamer as that. "
         startup_message.append(f"Setting Streamer name to {global_state.args.streamer}.")
 
     # This isn't political...the AI literally doesn't know who you are.
     if global_state.args.streamer_pronouns:
-        context += " The streamer's pronouns are " + global_state.args.streamer_pronouns
+        context += f" The streamer's pronouns are {global_state.args.streamer_pronouns}."
 
     if global_state.args.streamer_twitch:
-        context += " The streamer's twitch chat username name is " + global_state.args.streamer_twitch + ". "
+        context += f" The streamer's twitch chat username name is {global_state.args.streamer_twitch}. "
 
     if global_state.args.assistant:
-        context += " The assistant's name is " + global_state.args.assistant + ", and the assistant should refer to themselves as that. "
+        context += f" The assistant's name is {global_state.args.assistant}, and the assistant should refer to themselves as that. "
         startup_message.append(f"Setting Assistant name to {global_state.args.assistant}.")
 
     startup_message.append("Open T A AI Bot Now monitoring chat.")
@@ -65,21 +66,24 @@ async def main_loop(global_state):
     while global_state.running:
 
         try:
-            with open(global_state.file_path, "r", encoding="utf-8") as file:
+            with open(global_state.file_path, "r+", encoding="utf-8") as file:
                 lines = file.readlines()
 
                 # check our queue
-                if not global_state.main_queue.empty():
-                    while not global_state.main_queue.empty():
+                try:
+                    while True:
+                        item = global_state.main_queue.get_nowait()
                         if lines:
-                            lines.append(global_state.main_queue.get())
+                            lines.append(item)
                         else:
-                            lines = [global_state.main_queue.get()]
+                            lines = [item]
+                except Empty:
+                    pass
 
                 if lines:
                     # delete the contents of the file
-                    with open(global_state.file_path, "w") as f:
-                        f.write("")
+                    file.seek(0)
+                    file.truncate()
                     # Remove blank lines, strip whitespace from remaining lines, and strip out commands
                     # while parsing any commands for our script.
                     new_lines = []
@@ -174,53 +178,48 @@ async def twitch_thread(global_state):
     print("Twitch Thread: Started.")
     bot = twitch_common.Bot(global_state)
 
-    # Create an event to signal the stop condition
-    stop_event = asyncio.Event()
-
-    async def stop_bot():
-        # Set the event to signal the stop condition
-        stop_event.set()
-
-        # Stop the bot
-        await bot.close()
-
-    async def check_stop_condition():
-        last_game_check = time.time()
-        # Wait for the event to be set or global_state.running becomes False
-        while not stop_event.is_set() and global_state.running:
-            # check our queue to see if we need to do anything...
-            if global_state.twitch_queue.qsize() > 0:
-                item = global_state.twitch_queue.get()
-                if item[0] == "send_message":
-                    bot.send_chat_message(item[1])
-                if item[0] == "send_whisper":
-                    bot.send_chat_whisper(item[1], item[2])
-
-            # Has it been 30 seconds?
-            if time.time() - last_game_check >= 10:
-                await bot.get_current_game()
-                last_game_check = time.time()
-
-            await asyncio.sleep(1)
-
-        # Trigger the stop condition if global_state.running is False
-        if not global_state.running:
-            await stop_bot()
-
     # Run the bot and the stop condition checker concurrently
     try:
-        bot_task = asyncio.ensure_future(bot.start())
-        stop_condition_task = asyncio.ensure_future(check_stop_condition())
-        pubsub_task = asyncio.ensure_future(twitch_subpub.main(global_state))
-        tasks = [bot_task, stop_condition_task, pubsub_task]
-        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        for task in pending:
-            task.cancel()
+        async def check_stop_condition():
+            last_game_check = time.time()
+            while global_state.running:
+                # Check the Twitch queue for messages
+                while not global_state.twitch_queue.empty():
+                    item = global_state.twitch_queue.get()
+                    if item[0] == "send_message":
+                        bot.send_chat_message(item[1])
+                    elif item[0] == "send_whisper":
+                        bot.send_chat_whisper(item[1], item[2])
+
+                # Perform periodic game checks every 10 seconds
+                if time.time() - last_game_check >= 10:
+                    await bot.get_current_game()
+                    last_game_check = time.time()
+
+                await asyncio.sleep(0.5)  # Use a smaller delay for responsiveness
+
+            # Trigger the stop condition if global_state.running is False
+            await stop_bot()
+
+        async def stop_bot():
+            # Stop the bot
+            await bot.close()
+
+        bot_task = asyncio.create_task(bot.start())
+        stop_condition_task = asyncio.create_task(check_stop_condition())
+
+        await asyncio.wait([bot_task, stop_condition_task], return_when=asyncio.FIRST_COMPLETED)
+
+        # Cancel any remaining tasks
+        for task in [bot_task, stop_condition_task]:
+            if not task.done():
+                task.cancel()
 
     except asyncio.CancelledError:
         pass
 
     print("Twitch Thread: Stopped.")
+
 
 
 async def main(global_state):
@@ -238,7 +237,7 @@ if __name__ == "__main__":
     global_state.running = True
 
     # Call the enumerate_microphones function to list available microphones
-    enumerate_microphones(global_state)
+    # enumerate_microphones(global_state)
 
     loop = asyncio.get_event_loop()
     try:

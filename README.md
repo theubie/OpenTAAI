@@ -86,6 +86,6 @@ python main.py --chat_file <path_to_chat_file> --open_api_key <openai_api_key> -
 ## Future Plans
 
 * Allow using text-generation-webui instead of OpenAI - Mostly Done!
-* Allow using other local tts models - In progress.  Coqui and Pyttsx3 implemented, working on more.
+* Allow using other local tts models - In progress.  Coqui, Moegoe, and Pyttsx3 implemented, working on more.
 * Integrate a chatbot directly to skip needing a 3rd party to genereate the chat log - Mostly Done!
 * Money printer that goes brrr?

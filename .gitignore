@@ -167,3 +167,5 @@ cython_debug/
 /name_changes.json
 /output.txt
 /twitch_token.txt
+/machinet.conf
+/ignored_users.json

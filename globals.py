@@ -70,7 +70,11 @@ class GlobalState:
                 ignored_users_file = self.args.ignored_users_file
 
             with open(ignored_users_file, 'r') as f:
-                self.ignored_users = json.load(f)
+                try:
+                    self.ignored_users = json.load(f)
+                except:
+                    self.ignored_user = []
+
         except FileNotFoundError:
             pass
 

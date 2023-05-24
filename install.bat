@@ -1,4 +1,5 @@
 @echo off
+python -m venv venv
 echo Please select your installation:
 echo [A] NVIDIA GPU version (requires CUDA capable GPU)
 echo [B] CPU version
@@ -6,9 +7,9 @@ echo [B] CPU version
 choice /c AB /n /m "Select A or B: "
 
 if errorlevel 1 (
-    pip install -r requirements.txt
+	call venv\Scripts\activate.bat && (pip install -r requirements.txt) && (pip install -r requirements-cuda.txt) && (deactivate)
 ) else (
-    pip install -r requirements-cpu.txt
+	call venv\Scripts\activate.bat && (pip install -r requirements.txt) && (deactivate)
 )
 
 pause
