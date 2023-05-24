@@ -10,7 +10,7 @@ read -p "Enter your selection [A/B]: " choice
 if [ $choice == "A" ] || [ $choice == "a" ]
 then
   pip install -r requirements.txt
-  pip install -r requirements-gpu.txt
+  pip install -r requirements-cuda.txt
 elif [ $choice == "B" ] || [ $choice == "b" ]
 then
   pip install -r requirements.txt

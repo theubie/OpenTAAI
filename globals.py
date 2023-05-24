@@ -34,6 +34,9 @@ class GlobalState:
         self.context = ""
         self.twitch_token = ""
         self.twitch_user_id = 29601546
+        RETRY_DELAY_SECONDS = 5
+        MAX_RETRIES = 3
+
 
         # Queues
         self.main_queue = Queue()

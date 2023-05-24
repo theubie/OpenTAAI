@@ -2,6 +2,41 @@
 import response_commands
 import openai
 import logging
+import time
+
+RETRY_DELAY_SECONDS = 5
+MAX_RETRIES = 3
+
+
+def send_request(input_str, messages_to_send, global_state):
+    for retry in range(MAX_RETRIES):
+        try:
+            response = openai.ChatCompletion.create(
+                model=global_state.args.model,
+                messages=messages_to_send,
+                temperature=global_state.args.temperature
+            )
+            # If no exception is raised, break out of the retry loop
+            break
+        except openai.OpenAIError as e:
+            # Check if the exception message indicates that the model is overloaded
+            if "model is currently overloaded" in str(e):
+                if retry < MAX_RETRIES - 1:  # Don't sleep on last retry
+                    time.sleep(RETRY_DELAY_SECONDS)
+                    continue
+            # If the exception is not due to an overloaded model, or we've hit the maximum number of retries,
+            # re-raise the exception
+            raise
+    else:
+        # We only get here if we've exhausted our retries
+        logging.error(f"Request: {input_str}\nError: Model overloaded\n")
+        print(f"Error: Model overloaded")
+        return "Sorry, the model is currently overloaded. Please try again later."
+
+    # Process the response
+    new_response = response_commands.process_response(response['choices'][0]['message']['content'], global_state)
+    global_state.messages.append({"role": "assistant", "content": new_response})
+    return new_response
 
 
 def send_message(lines, context, global_state):
@@ -23,21 +58,7 @@ def send_message(lines, context, global_state):
     # OpenAI api key
     openai.api_key = global_state.api_key.strip()
 
-    try:
+    if global_state.verbose:
+        print(f"Input text: \n{messages_to_send}")
 
-        if global_state.verbose:
-            print(f"Input text: \n{messages_to_send}")
-        response = openai.ChatCompletion.create(
-            model=global_state.args.model,
-            messages=messages_to_send,
-            temperature=global_state.args.temperature
-        )
-        logging.info(f"Request: {input_str}\nResponse: {response}\n")
-    except openai.OpenAIError as e:
-        logging.error(f"Request: {input_str}\nError: {e}\n")
-        print(f"Error: {e}")
-        return "Sorry, an error occurred while processing your request. Please try again later."
-    else:
-        new_response = response_commands.process_response(response['choices'][0]['message']['content'], global_state)
-        global_state.messages.append({"role": "assistant", "content": new_response})
-        return new_response
+    return send_request(input_str, messages_to_send, global_state)

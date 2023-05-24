@@ -1,6 +1,7 @@
 import mymoegoe.tts as mytts
 import simpleaudio as sa
 import time
+import sounddevice as sd
 
 
 def say(text, global_state, event):
@@ -21,18 +22,21 @@ def say(text, global_state, event):
             print(f"Sending {text} to moegoe tts")
             start_time = time.time()
 
-        mytts.tts(text, "d:/OpenTAAI/temp.wav", global_state.args.tts_voice, global_state.args.tts_rate)
+        audio = mytts.tts(text, "d:/OpenTAAI/temp.wav", global_state.args.tts_voice, global_state.args.tts_rate, True)
+        sd.play(audio, samplerate=mytts.hps_ms.data.sampling_rate, blocking=True)
 
         if global_state.verbose:
             gen_time = time.time()
             print(f"TTS generated and saved as file in {gen_time - start_time} seconds.")
 
-    except:
-        print("failed to generate tts")
+    except Exception as e:
+        print("Failed to generate tts")
+        print(f"Error: {e}")
+        raise
 
-    wave_obj = sa.WaveObject.from_wave_file("d:/OpenTAAI/temp.wav")
-    play_obj = wave_obj.play()
-    play_obj.wait_done()
+    # wave_obj = sa.WaveObject.from_wave_file("d:/OpenTAAI/temp.wav")
+    # play_obj = wave_obj.play()
+    # play_obj.wait_done()
     if global_state.verbose:
         play_time = time.time()
         print(

@@ -5,5 +5,6 @@ pyttsx3
 speechrecognition
 pyaudio
 simpleaudio
+sounddevice
 eng_to_ipa
 unidecode

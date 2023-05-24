@@ -149,7 +149,7 @@ def loadtts(mgmodel):
     load_checkpoint(model, net_g_ms)
 
 
-def tts(text, out_path="temp.wav", voice=speaker_id, speed=length_scale):
+def tts(text, out_path="temp.wav", voice=speaker_id, speed=length_scale, no_save=False):
     speaker_id = voice
     length_scale = speed
     if n_symbols != 0:
@@ -169,7 +169,8 @@ def tts(text, out_path="temp.wav", voice=speaker_id, speed=length_scale):
             audio = net_g_ms.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=noise_scale,
                                    noise_scale_w=noise_scale_w, length_scale=length_scale)[0][
                 0, 0].data.cpu().float().numpy()
-
+            if no_save:
+                return audio
             # Save Wav File
             with wave.open(out_path, 'wb') as wav_file:
                 # Set audio file parameters
