@@ -1,4 +1,22 @@
 import argparse
+import json
+from helpers import save_settings
+
+
+class LoadFromFileAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        try:
+            # Load arguments from the file
+            with open(values) as file:
+                file_args = json.load(file)
+
+            # Update the namespace with the loaded arguments
+            namespace.__dict__.update(file_args)
+
+        except FileNotFoundError:
+            parser.error(f"The specified file '{values}' does not exist.")
+        except json.JSONDecodeError:
+            parser.error(f"Invalid JSON format in the file '{values}'.")
 
 
 def parse_args():
@@ -45,6 +63,8 @@ def parse_args():
     parser.add_argument('--timezone', type=str, default='US/Central', help="Timezone you are in.  List of timezones "
                                                                            "can be found at "
                                                                            "https://pythonhosted.org/pytz/#available-time-zones")
+    parser.add_argument('--settings', type=str, metavar='FILE', action=LoadFromFileAction,
+                        help='Load arguments from a JSON file')
 
     # LLM Setup
     parser.add_argument('--open_api_key', type=str, required=False,
@@ -85,4 +105,10 @@ def parse_args():
                         help="Path to a text file containing your twitch token.  Defaults to twitch_token.txt")
 
     args = parser.parse_args()
+
+    # check if settings flag as used, if not, set it to settings.txt and save current args to it.
+    if not args.settings:
+        save_settings(args, "settings.txt")
+        args.settings = "settings.txt"
+
     return args

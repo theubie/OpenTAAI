@@ -17,6 +17,8 @@ from torch import no_grad, LongTensor
 from json import loads
 from torch import load, FloatTensor
 import torch
+from scipy.io.wavfile import write
+import os
 
 
 # Utils
@@ -101,9 +103,7 @@ speaker_id = 0
 
 # Default Audio Settings
 defaultlength = 1
-# defaultnoisescale = 0.667
 defaultnoisescale = 0.5
-# defaultnoisedeviation = 0.8
 defaultnoisedeviation = 0.2
 
 # Audio Settings
@@ -119,11 +119,13 @@ hps_ms = None
 net_g_ms = None
 
 
-def loadtts(mgmodel):
+def loadtts(mgmodel, global_state):
     global model, config, mchoice
     mchoice = mgmodel
-    model = "mymoegoe/models/" + mgmodel + ".pth"
-    config = "mymoegoe/models/" + mgmodel + ".json"
+    script_path = os.path.abspath(__file__)
+    directory = os.path.dirname(script_path)
+    model = os.path.join(directory, "models/" + mgmodel + ".pth")
+    config = os.path.join(directory, "models/" + mgmodel + ".json")
     global n_symbols, hps_ms, net_g_ms
     # Load params from the config
     hps_ms = get_hparams_from_file(config)
@@ -145,14 +147,18 @@ def loadtts(mgmodel):
         n_speakers=n_speakers,
         emotion_embedding=emotion_embedding,
         **hps_ms.model)
+    if not global_state.args.force_tts_cpu:
+        net_g_ms.cuda()
     _ = net_g_ms.eval()
     load_checkpoint(model, net_g_ms)
 
 
-def tts(text, out_path="temp.wav", voice=speaker_id, speed=length_scale, no_save=False):
+def tts(text, global_state, out_path="temp.wav", voice=speaker_id, speed=length_scale, no_save=False):
     speaker_id = voice
     length_scale = speed
+
     if n_symbols != 0:
+
         # Clean Text
         # text = text.replace("\"","")
         text_norm = text_to_sequence(text, hps_ms.symbols, hps_ms.data.text_cleaners)
@@ -161,30 +167,27 @@ def tts(text, out_path="temp.wav", voice=speaker_id, speed=length_scale, no_save
         text_norm = LongTensor(text_norm)
         stn_tst = text_norm
         # ---------------
+
         with no_grad():
+
             # Generate the TTS audio
-            x_tst = stn_tst.unsqueeze(0)
-            x_tst_lengths = LongTensor([stn_tst.size(0)])
-            sid = LongTensor([speaker_id])
+            if not global_state.args.force_tts_cpu:
+                x_tst = stn_tst.unsqueeze(0).cuda()
+                x_tst_lengths = LongTensor([stn_tst.size(0)]).cuda()
+                sid = LongTensor([speaker_id]).cuda()
+            else:
+                x_tst = stn_tst.unsqueeze(0)
+                x_tst_lengths = LongTensor([stn_tst.size(0)])
+                sid = LongTensor([speaker_id])
+
             audio = net_g_ms.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=noise_scale,
                                    noise_scale_w=noise_scale_w, length_scale=length_scale)[0][
                 0, 0].data.cpu().float().numpy()
+
             if no_save:
                 return audio
-            # Save Wav File
-            with wave.open(out_path, 'wb') as wav_file:
-                # Set audio file parameters
-                wav_file.setnchannels(1)  # Mono audio
-                wav_file.setsampwidth(2)  # 16-bit audio
-                wav_file.setframerate(hps_ms.data.sampling_rate)  # Sample Rate
 
-                # Write audio data to file
-                for sample in audio:
-                    # Convert sample to 16-bit signed integer format
-                    sample = max(-1, min(1, sample))  # Clamp sample to range [-1, 1]
-                    sample = int(sample * 32767)  # Scale sample to range [-32767, 32767]
-                    packed_sample = struct.pack('<h', sample)  # Convert to little-endian 16-bit signed integer
-                    wav_file.writeframes(packed_sample)
+            write(out_path, hps_ms.data.sampling_rate, audio)
 
 
 # loadtts()

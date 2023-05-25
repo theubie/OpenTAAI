@@ -9,7 +9,7 @@ def say(text, global_state, event):
         if global_state.verbose:
             print(f"Loading moegoe model.")
 
-        mytts.loadtts("b")
+        mytts.loadtts("b", global_state)
 
         if global_state.verbose:
             print(f"Total voices in this model: {len(mytts.hps_ms.speakers)}")
@@ -22,7 +22,8 @@ def say(text, global_state, event):
             print(f"Sending {text} to moegoe tts")
             start_time = time.time()
 
-        audio = mytts.tts(text, "d:/OpenTAAI/temp.wav", global_state.args.tts_voice, global_state.args.tts_rate, True)
+        audio = mytts.tts(text, global_state, "d:/OpenTAAI/temp.wav", global_state.args.tts_voice,
+                          global_state.args.tts_rate, True)
         sd.play(audio, samplerate=mytts.hps_ms.data.sampling_rate, blocking=True)
 
         if global_state.verbose:

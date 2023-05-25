@@ -1,4 +1,5 @@
 import re
+import json
 
 
 def replace_words_with_pronunciations(text, custom_pronunciations):
@@ -25,3 +26,8 @@ def remove_non_english(text):
 
     return processed_text
 
+
+def save_settings(args, filename):
+    settings = vars(args)  # Convert args namespace to a dictionary
+    with open(filename, 'w') as file:
+        json.dump(settings, file, indent=4)
