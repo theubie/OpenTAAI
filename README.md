@@ -49,6 +49,8 @@ The script is run with the following parameters:
 
 `--timezone`: Timezone you are in. List of timezones can be found at https://pythonhosted.org/pytz/#available-time-zones (default: US/Central).
 
+`--settings`: The path to a json file with settings to load.  If no settings file is specified, settings.txt will be created and updated with the settings at runtime.
+
 `--open_api_key`: The OpenAI API key (optional, if not provided the script will use the api_key_file argument).
 
 `--api_key_file`: The path to the file containing the OpenAI API key (optional, if not provided the script will use the open_api_key argument).
