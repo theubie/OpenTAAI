@@ -169,4 +169,5 @@ cython_debug/
 /twitch_token.txt
 /machinet.conf
 /ignored_users.json
-/combined_output.wav
+/*.wav
+/settings.txt
